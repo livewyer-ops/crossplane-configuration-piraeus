@@ -1,0 +1,27 @@
+apiVersion: piraeus.livewyer.io/v1alpha1
+kind: Cluster
+metadata:
+  name: test-linstor-cluster
+spec:
+  cluster:
+    highAvailabilityController:
+      enabled: true
+  nodeConnection: {}
+  satelliteConfiguration: {}
+  storagePools:
+    - name: pool1
+      spec:
+        type: fileThinPool
+        directory: /var/lib/linstor/pools/pool1
+      storageClass:
+        spec:
+          allowVolumeExpansion: true
+    - name: pool2
+      spec:
+        type: fileThinPool
+        directory: /var/lib/linstor/pools/pool2
+      storageClass:
+        spec:
+          allowVolumeExpansion: true
+          parameters:
+            linstor.csi.linbit.com/placementCount: "2"

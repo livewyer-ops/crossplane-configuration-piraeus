@@ -1,32 +1,88 @@
 apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
-  name: cfg-composition
+  name: installation.piraeus.livewyer.io
 spec:
   compositeTypeRef:
-    apiVersion: cfg.example.org/v1alpha1
-    kind: XCfgResource
+    apiVersion: piraeus.livewyer.io/v1alpha1
+    kind: Installation
   mode: Pipeline
   pipeline:
-    - step: patch-and-transform
+    - step: go-templating
       functionRef:
-        name: crossplane-contrib-function-patch-and-transform
+        name: function-go-templating
       input:
-        apiVersion: pt.fn.crossplane.io/v1beta1
-        kind: Resources
-        resources:
-          - name: resource-0
-            base:
-              apiVersion: kubernetes.crossplane.io/v1alpha2
-              kind: Object
-              spec:
-                forProvider:
-                  manifest:
-                    apiVersion: v1
-                    kind: ConfigMap
-                    metadata:
-                      namespace: default
-            patches:
-              - type: FromCompositeFieldPath
-                fromFieldPath: spec.data
-                toFieldPath: spec.forProvider.manifest.data.sample-key
+        apiVersion: gotemplating.fn.crossplane.io/v1beta1
+        kind: GoTemplate
+        source: Inline
+        inline:
+          template: |
+            {{ $id := .observed.composite.resource.metadata.name }}
+            {{ $spec := .observed.composite.resource.spec }}
+
+            {{- $charts := list }}
+            {{- $charts = append $charts (dict "name" "piraeus" "namespace" "piraeus-datastore" "repository" "https://livewyer-ops.github.io/charts/" "values" "installCRDs: true") }}
+            {{- $charts = append $charts (dict "name" "linstor-affinity-controller" "namespace" "piraeus-datastore" "repository" "https://livewyer-ops.github.io/charts/") }}
+            {{- $charts = append $charts (dict "name" "linstor-scheduler" "namespace" "piraeus-datastore" "repository" "https://livewyer-ops.github.io/charts/") }}
+
+            {{- range $index, $chart := default $charts $spec.charts }}
+            apiVersion: helm.crossplane.io/v1beta1
+            kind: Release
+            metadata:
+              name: {{ $id }}-{{ $chart.name }}
+              annotations:
+                {{ setResourceNameAnnotation (printf "release.helm.crossplane.io/%s-%s" $id $chart.name) }}
+              labels:
+                piraeus.livewyer.io/installation: {{ $id }}
+            spec:
+              forProvider:
+                chart:
+                  name: {{ $chart.name }}
+                  {{- if $chart.repository }}
+                  repository: {{ $chart.repository }}
+                  {{- end }}
+                  {{- if $chart.version }}
+                  version: {{ $chart.version }}
+                  {{- end }}
+                  {{- if $chart.url }}
+                  url: {{ $chart.url }}
+                  {{- end }}
+                  {{- if $chart.pullSecretRef }}
+                  pullSecretRef:
+                    name: {{ $chart.pullSecretRef.name }}
+                    namespace: {{ $chart.pullSecretRef.namespace }}
+                  {{- end }}
+                namespace: {{ $chart.namespace }}
+                {{- if $chart.skipCRDs}}
+                skipCRDs: {{ $chart.skipCRDs }}
+                {{- end }}
+                {{- if $chart.skipCreateNamespace }}
+                skipCreateNamespace: {{ $chart.skipCreateNamespace }}
+                {{- end }}
+                {{- if $chart.wait }}
+                wait: {{ $chart.wait }}
+                {{- end }}
+                {{- if $chart.waitTimeout }}
+                waitTimeout: {{ $chart.waitTimeout }}
+                {{- end }}
+                {{- if $chart.rollbackLimit }}
+                rollbackLimit: {{ $chart.rollbackLimit }}
+                {{- end }}
+                {{- if $chart.values }}
+                values:
+                  {{ toYaml $chart.values | indent 6 }}
+                {{- end }}
+                {{- if $chart.patchesFrom }}
+                patchesFrom:
+                  {{ toYaml $chart.patchesFrom | indent 6 }}
+                {{- end }}
+                {{- if $chart.set}}
+                set:
+                  {{ toYaml $chart.set | indent 6 }}
+                {{- end }}
+                {{- if $chart.valuesFrom }}
+                valuesFrom:
+                  {{ toYaml $chart.valuesFrom | indent 6 }}
+                {{- end }}
+            ---
+            {{- end }}
