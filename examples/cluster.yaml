@@ -10,18 +10,16 @@ spec:
   satelliteConfiguration: {}
   storagePools:
     - name: pool1
+      type: fileThinPool
       spec:
-        type: fileThinPool
         directory: /var/lib/linstor/pools/pool1
       storageClass:
-        spec:
-          allowVolumeExpansion: true
+        allowVolumeExpansion: true
     - name: pool2
+      type: fileThinPool
       spec:
-        type: fileThinPool
         directory: /var/lib/linstor/pools/pool2
       storageClass:
-        spec:
-          allowVolumeExpansion: true
-          parameters:
-            linstor.csi.linbit.com/placementCount: "2"
+        allowVolumeExpansion: true
+        parameters:
+          linstor.csi.linbit.com/placementCount: "2"

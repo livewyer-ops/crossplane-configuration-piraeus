@@ -86,3 +86,104 @@ spec:
                 {{- end }}
             ---
             {{- end }}
+    - step: automatically-detect-readiness
+      functionRef:
+        name: function-auto-ready
+
+---
+apiVersion: apiextensions.crossplane.io/v1
+kind: Composition
+metadata:
+  name: cluster.piraeus.livewyer.io
+spec:
+  compositeTypeRef:
+    apiVersion: piraeus.livewyer.io/v1alpha1
+    kind: Cluster
+  mode: Pipeline
+  pipeline:
+    - step: go-templating
+      functionRef:
+        name: function-go-templating
+      input:
+        apiVersion: gotemplating.fn.crossplane.io/v1beta1
+        kind: GoTemplate
+        source: Inline
+        inline:
+          template: |
+            {{ $id := .observed.composite.resource.metadata.name }}
+            {{ $spec := .observed.composite.resource.spec }}
+
+            apiVersion: piraeus.io/v1
+            kind: LinstorCluster
+            metadata:
+              name: {{ $id }}
+              annotations:
+                {{ setResourceNameAnnotation (printf "cluster.piraeus.livewyer.io/%s" $id) }}
+              labels:
+                piraeus.livewyer.io/cluster: {{ $id }}
+            spec:
+              {{- if $spec.cluster }}
+              {{ toYaml $spec.cluster | indent 2 }}
+              {{- else }}
+              {}
+              {{- end }}
+
+            ---
+            {{- if $spec.nodeConnection }}
+            apiVersion: piraeus.io/v1
+            kind: LinstorNodeConnection
+            metadata:
+              name: {{ $id }}
+              annotations:
+                {{ setResourceNameAnnotation (printf "cluster.piraeus.livewyer.io/%s" $id) }}
+              labels:
+                piraeus.livewyer.io/cluster: {{ $id }}
+            spec:
+              {{ toYaml $spec.nodeConnection | indent 2 }}
+
+            ---
+            {{- end }}
+
+            apiVersion: piraeus.io/v1
+            kind: LinstorSatelliteConfiguration
+            metadata:
+              name: {{ $id }}
+              annotations:
+                {{ setResourceNameAnnotation (printf "cluster.piraeus.livewyer.io/%s" $id) }}
+              labels:
+                piraeus.livewyer.io/cluster: {{ $id }}
+            spec:
+              {{- if $spec.satelliteConfiguration }}
+              {{ toYaml $spec.satelliteConfiguration | indent 2 }}
+              {{- end }}
+              storagePools:
+                {{- range $index, $pool := $spec.storagePools }}
+                - name: {{ $pool.name }}
+                  {{ $pool.type }}:
+                    {{ toYaml $pool.spec | indent 8 }}
+                {{- end }}
+
+            ---
+            {{- range $index, $pool := $spec.storagePools }}
+
+            apiVersion: storage.k8s.io/v1
+            kind: StorageClass
+            metadata:
+              name: {{ $id }}-{{ $pool.name }}
+              annotations:
+                {{ setResourceNameAnnotation (printf "cluster.piraeus.livewyer.io/%s" $id) }}
+              labels:
+                piraeus.livewyer.io/cluster: {{ $id }}
+            spec:
+              {{- if $pool.storageClass }}
+              {{ toYaml $pool.storageClass | indent 2 }}
+              {{- else }}
+              {}
+              {{- end }}
+
+            ---
+            {{- end }}
+
+    - step: automatically-detect-readiness
+      functionRef:
+        name: function-auto-ready
