@@ -1,26 +1,11 @@
 apiVersion: piraeus.livewyer.io/v1alpha1
 kind: Installation
 metadata:
-  namespace: piraeus-full
+  name: piraeus
 spec:
   charts:
-    - name: piraeus
-      namespace: piraeus-datastore
-      repository: https://livewyer-ops.github.io/charts/
-      values:
-        installCRDs: true
-    - name: linstor-affinity-controller
-      namespace: piraeus-datastore
-      repository: https://piraeus.io/helm-charts/
-    - name: linstor-scheduler
-      namespace: piraeus-datastore
-      repository: https://piraeus.io/helm-charts/
-    - name: snapshot-controller
+    piraeus:
+      version: 2.8.0
+    snapshot-controller:
       namespace: snapshot-controller
       repository: https://piraeus.io/helm-charts/
-    - name: cert-manager
-      namespace: cert-manager
-      repository: https://charts.jetstack.io/
-      values:
-        crds:
-          enabled: true

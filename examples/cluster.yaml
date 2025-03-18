@@ -1,13 +1,13 @@
 apiVersion: piraeus.livewyer.io/v1alpha1
 kind: Cluster
 metadata:
-  name: test-linstor-cluster
+  name: test
 spec:
   cluster:
     highAvailabilityController:
       enabled: true
-  nodeConnection: {}
-  satelliteConfiguration: {}
+  # nodeConnection: {}
+  # satelliteConfiguration: {}
   storagePools:
     - name: pool1
       type: fileThinPool

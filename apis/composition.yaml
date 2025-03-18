@@ -5,39 +5,42 @@ metadata:
 spec:
   compositeTypeRef:
     apiVersion: piraeus.livewyer.io/v1alpha1
-    kind: Installation
+    kind: XInstallation
   mode: Pipeline
   pipeline:
     - step: go-templating
       functionRef:
-        name: function-go-templating
+        name: upbound-function-go-templating
       input:
         apiVersion: gotemplating.fn.crossplane.io/v1beta1
         kind: GoTemplate
         source: Inline
         inline:
           template: |
-            {{ $id := .observed.composite.resource.metadata.name }}
-            {{ $spec := .observed.composite.resource.spec }}
+            {{- $id := .observed.composite.resource.metadata.name -}}
+            {{- $spec := .observed.composite.resource.spec -}}
 
-            {{- $charts := list }}
-            {{- $charts = append $charts (dict "name" "piraeus" "namespace" "piraeus-datastore" "repository" "https://livewyer-ops.github.io/charts/" "values" "installCRDs: true") }}
-            {{- $charts = append $charts (dict "name" "linstor-affinity-controller" "namespace" "piraeus-datastore" "repository" "https://livewyer-ops.github.io/charts/") }}
-            {{- $charts = append $charts (dict "name" "linstor-scheduler" "namespace" "piraeus-datastore" "repository" "https://livewyer-ops.github.io/charts/") }}
+            {{- $charts := dict -}}
+            {{- $charts := set $charts "piraeus" (dict "namespace" "piraeus-datastore" "repository" "https://livewyer-ops.github.io/charts/" "values" (dict "installCRDs" true)) -}}
+            {{- /* -}}
+            {{- $charts := set $charts "linstor-affinity-controller" (dict "namespace" "piraeus-datastore" "repository" "https://piraeus.io/helm-charts/") -}}
+            {{- $charts := set $charts "linstor-scheduler" (dict "namespace" "piraeus-datastore" "repository" "https://piraeus.io/helm-charts/") -}}
+            {{- */ -}}
 
-            {{- range $index, $chart := default $charts $spec.charts }}
+            {{- range $name, $chart := (deepCopy $spec.charts | merge $charts) }}
+
             apiVersion: helm.crossplane.io/v1beta1
             kind: Release
             metadata:
-              name: {{ $id }}-{{ $chart.name }}
+              name: {{ $name }}
               annotations:
-                {{ setResourceNameAnnotation (printf "release.helm.crossplane.io/%s-%s" $id $chart.name) }}
+                {{ setResourceNameAnnotation (printf "release.helm.crossplane.io/%s" $name) }}
               labels:
                 piraeus.livewyer.io/installation: {{ $id }}
             spec:
               forProvider:
                 chart:
-                  name: {{ $chart.name }}
+                  name: {{ $name }}
                   {{- if $chart.repository }}
                   repository: {{ $chart.repository }}
                   {{- end }}
@@ -70,25 +73,31 @@ spec:
                 {{- end }}
                 {{- if $chart.values }}
                 values:
-                  {{ toYaml $chart.values | indent 6 }}
+                  {{ toJson $chart.values }}
                 {{- end }}
                 {{- if $chart.patchesFrom }}
                 patchesFrom:
-                  {{ toYaml $chart.patchesFrom | indent 6 }}
+                  {{ toJson $chart.patchesFrom }}
                 {{- end }}
                 {{- if $chart.set}}
                 set:
-                  {{ toYaml $chart.set | indent 6 }}
+                  {{ toJson $chart.set }}
                 {{- end }}
                 {{- if $chart.valuesFrom }}
                 valuesFrom:
-                  {{ toYaml $chart.valuesFrom | indent 6 }}
+                  {{ toJson $chart.valuesFrom }}
                 {{- end }}
+                {{- if $spec.providerConfig }}
+                providerConfigRef:
+                  name: {{ $spec.providerConfig }}
+                {{- end }}
+
             ---
             {{- end }}
+
     - step: automatically-detect-readiness
       functionRef:
-        name: function-auto-ready
+        name: upbound-function-auto-ready
 
 ---
 apiVersion: apiextensions.crossplane.io/v1
@@ -98,35 +107,35 @@ metadata:
 spec:
   compositeTypeRef:
     apiVersion: piraeus.livewyer.io/v1alpha1
-    kind: Cluster
+    kind: XCluster
   mode: Pipeline
   pipeline:
     - step: go-templating
       functionRef:
-        name: function-go-templating
+        name: upbound-function-go-templating
       input:
         apiVersion: gotemplating.fn.crossplane.io/v1beta1
         kind: GoTemplate
         source: Inline
         inline:
           template: |
-            {{ $id := .observed.composite.resource.metadata.name }}
-            {{ $spec := .observed.composite.resource.spec }}
+            {{ $id := .observed.composite.resource.metadata.name -}}
+            {{ $spec := .observed.composite.resource.spec -}}
 
             apiVersion: piraeus.io/v1
             kind: LinstorCluster
             metadata:
               name: {{ $id }}
               annotations:
-                {{ setResourceNameAnnotation (printf "cluster.piraeus.livewyer.io/%s" $id) }}
+                {{ setResourceNameAnnotation (printf "linstorcluster.piraeus.io/%s" $id) }}
               labels:
                 piraeus.livewyer.io/cluster: {{ $id }}
             spec:
-              {{- if $spec.cluster }}
-              {{ toYaml $spec.cluster | indent 2 }}
-              {{- else }}
-              {}
-              {{- end }}
+            {{- if $spec.cluster }}
+            {{ toYaml $spec.cluster | indent 2 }}
+            {{- else }}
+            {}
+            {{- end }}
 
             ---
             {{- if $spec.nodeConnection }}
@@ -135,11 +144,11 @@ spec:
             metadata:
               name: {{ $id }}
               annotations:
-                {{ setResourceNameAnnotation (printf "cluster.piraeus.livewyer.io/%s" $id) }}
+                {{ setResourceNameAnnotation (printf "linstornodeconnections.piraeus.io/%s" $id) }}
               labels:
                 piraeus.livewyer.io/cluster: {{ $id }}
             spec:
-              {{ toYaml $spec.nodeConnection | indent 2 }}
+            {{ toYaml $spec.nodeConnection | indent 2 }}
 
             ---
             {{- end }}
@@ -149,19 +158,19 @@ spec:
             metadata:
               name: {{ $id }}
               annotations:
-                {{ setResourceNameAnnotation (printf "cluster.piraeus.livewyer.io/%s" $id) }}
+                {{ setResourceNameAnnotation (printf "linstorsatelliteconfigurations.piraeus.io/%s" $id) }}
               labels:
                 piraeus.livewyer.io/cluster: {{ $id }}
             spec:
-              {{- if $spec.satelliteConfiguration }}
-              {{ toYaml $spec.satelliteConfiguration | indent 2 }}
-              {{- end }}
+            {{- if $spec.satelliteConfiguration }}
+            {{ toYaml $spec.satelliteConfiguration | indent 2 }}
+            {{- end }}
               storagePools:
-                {{- range $index, $pool := $spec.storagePools }}
+            {{- range $index, $pool := $spec.storagePools }}
                 - name: {{ $pool.name }}
                   {{ $pool.type }}:
-                    {{ toYaml $pool.spec | indent 8 }}
-                {{- end }}
+            {{ toYaml $pool.spec | indent 8 }}
+            {{- end }}
 
             ---
             {{- range $index, $pool := $spec.storagePools }}
@@ -171,19 +180,50 @@ spec:
             metadata:
               name: {{ $id }}-{{ $pool.name }}
               annotations:
-                {{ setResourceNameAnnotation (printf "cluster.piraeus.livewyer.io/%s" $id) }}
+                {{ setResourceNameAnnotation (printf "storageclass.storage.k8s.io/%s-%s" $id $pool.name) }}
               labels:
                 piraeus.livewyer.io/cluster: {{ $id }}
-            spec:
-              {{- if $pool.storageClass }}
-              {{ toYaml $pool.storageClass | indent 2 }}
-              {{- else }}
-              {}
-              {{- end }}
+            provisioner: linstor.csi.linbit.com
+            {{- if $pool.storageClass }}
+            allowVolumeExpansion: {{ default true $pool.storageClass.allowVolumeExpansion }}
+            reclaimPolicy: {{ default "Delete" $pool.storageClass.reclaimPolicy }}
+            parameters:
+            {{ deepCopy (default dict $pool.storageClass.parameters) | merge (dict "linstor.csi.linbit.com/storagePool" $pool.name) | toYaml | indent 2 }}
+            {{- if $pool.storageClass.allowedTopologies }}
+            allowedTopologies:
+            {{ toYaml $pool.storageClass.allowedTopologies | indent 2 }}
+            {{- end }}
+            {{- if $pool.storageClass.mountOptions }}
+            mountOptions:
+            {{ toYaml $pool.storageClass.mountOptions | indent 2 }}
+            {{- end }}
+            {{- if $pool.storageClass.volumeBindingMode }}
+            volumeBindingMode:
+            {{ toYaml $pool.storageClass.volumeBindingMode | indent 2 }}
+            {{- end }}
+            {{- end }}
 
             ---
             {{- end }}
 
+            apiVersion: {{ .observed.composite.resource.apiVersion }}
+            kind: {{ .observed.composite.resource.kind }}
+            status:
+              {{- $linstorClusterId := dig "resources" (printf "linstorcluster.piraeus.io/%s" $id) "resource" "metadata" "name" "" $.observed }}
+              {{- if $linstorClusterId }}
+              linstorClusterId: {{ $linstorClusterId }}
+              {{- end }}
+
+              {{- $linstorStoragePools := list dict }}
+              {{- $linstorStoragePools := dig "resources" (printf "linstorsatelliteconfigurations.piraeus.io/%s" $id) "resource" "spec" "storagePools" (list dict) $.observed }}
+              linstorStoragePools:
+            {{ toYaml $linstorStoragePools | indent 4 }}
+
+              storageClasses:
+              {{- range $index, $pool := $spec.storagePools }}
+                - {{ $id }}-{{ $pool.name }}
+              {{- end }}
+
     - step: automatically-detect-readiness
       functionRef:
-        name: function-auto-ready
+        name: upbound-function-auto-ready

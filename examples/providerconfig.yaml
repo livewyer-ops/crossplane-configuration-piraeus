@@ -1,44 +1,56 @@
-apiVersion: helm.crossplane.io/v1beta1
-kind: ProviderConfig
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
 metadata:
-  name: default
-spec:
-  credentials:
-    source: InjectedIdentity
+  name: cluster-storageclass-admin
+rules:
+  - apiGroups:
+      - storage.k8s.io
+    resources:
+      - storageclasses
+      - volumesnapshotclasses
+    verbs:
+      - "*"
 
 ---
-apiVersion: kubernetes.crossplane.io/v1alpha1
-kind: ProviderConfig
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
 metadata:
-  name: default
-spec:
-  credentials:
-    source: InjectedIdentity
+  name: crossplane-storageclass-admin
+subjects:
+  - kind: ServiceAccount
+    name: crossplane
+    namespace: crossplane-system
+roleRef:
+  kind: ClusterRole
+  name: cluster-storageclass-admin
+  apiGroup: rbac.authorization.k8s.io
 
 ---
-# Make sure provider-kubernetes has enough permissions to install your objects into cluster
-apiVersion: pkg.crossplane.io/v1
-kind: Provider
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
 metadata:
-  name: provider-kubernetes
-spec:
-  package: xpkg.upbound.io/upbound/provider-kubernetes:v0
-  runtimeConfigRef:
-    apiVersion: pkg.crossplane.io/v1beta1
-    kind: DeploymentRuntimeConfig
-    name: crossplane-cluster-admin
+  name: piraeus-admin
+rules:
+  - apiGroups:
+      - piraeus.io
+    resources:
+      - "*"
+    verbs:
+      - "*"
 
 ---
-apiVersion: pkg.crossplane.io/v1
-kind: Provider
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
 metadata:
-  name: provider-helm
-spec:
-  package: xpkg.upbound.io/upbound/provider-helm:v0
-  runtimeConfigRef:
-    apiVersion: pkg.crossplane.io/v1beta1
-    kind: DeploymentRuntimeConfig
-    name: crossplane-cluster-admin
+  name: crossplane-piraeus-admin
+subjects:
+  - kind: ServiceAccount
+    name: crossplane
+    namespace: crossplane-system
+roleRef:
+  kind: ClusterRole
+  name: piraeus-admin
+  apiGroup: rbac.authorization.k8s.io
 
 ---
 apiVersion: pkg.crossplane.io/v1beta1
@@ -63,3 +75,24 @@ roleRef:
   kind: ClusterRole
   name: cluster-admin
   apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: upbound-provider-helm
+spec:
+  package: xpkg.upbound.io/upbound/provider-helm:v0
+  runtimeConfigRef:
+    apiVersion: pkg.crossplane.io/v1beta1
+    kind: DeploymentRuntimeConfig
+    name: crossplane-cluster-admin
+
+---
+apiVersion: helm.crossplane.io/v1beta1
+kind: ProviderConfig
+metadata:
+  name: default
+spec:
+  credentials:
+    source: InjectedIdentity
