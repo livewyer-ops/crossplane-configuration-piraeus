@@ -15,6 +15,9 @@ spec:
         directory: /var/lib/linstor/pools/pool1
       storageClass:
         allowVolumeExpansion: true
+      snapshotClass:
+        enabled: true
+        deletionPolicy: Retain
     - name: pool2
       type: fileThinPool
       spec:
@@ -23,3 +26,5 @@ spec:
         allowVolumeExpansion: true
         parameters:
           linstor.csi.linbit.com/placementCount: "2"
+      snapshotClass:
+        enabled: true

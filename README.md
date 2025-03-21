@@ -37,6 +37,7 @@ spec:
      ```
 
 3. _Optional_: Install `Snapshot Controller` if you wish to take snapshots of Piraeus volumes. You can use your own custom installation method or use the example provided in [examples/install.yaml](examples/install.yaml)
+   _NOTE_: From Kubernetes v1.20 volume snapshot feature is included in the Kubernetes release.
 
 4. **Setup RBAC**: Add additional `ClusterRole` and `ClusterRoleBinding` required to manage Piraeus `piraeus.io` resources.
 

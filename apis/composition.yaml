@@ -204,6 +204,21 @@ spec:
             {{- end }}
 
             ---
+            {{- if default false $pool.snapshotClass.enabled }}
+
+            apiVersion: snapshot.storage.k8s.io/v1
+            kind: VolumeSnapshotClass
+            metadata:
+              name: {{ $id }}-{{ $pool.name }}
+              annotations:
+                {{ setResourceNameAnnotation (printf "volumesnapshotclass.snapshot.storage.k8s.io/%s-%s" $id $pool.name) }}
+              labels:
+                piraeus.livewyer.io/cluster: {{ $id }}
+            driver: linstor.csi.linbit.com
+            deletionPolicy: {{ default "Delete" $pool.snapshotClass.deletionPolicy }}
+
+            ---
+            {{- end }}
             {{- end }}
 
             apiVersion: {{ .observed.composite.resource.apiVersion }}
@@ -222,6 +237,15 @@ spec:
               storageClasses:
               {{- range $index, $pool := $spec.storagePools }}
                 - {{ $id }}-{{ $pool.name }}
+              {{- end }}
+
+              snapshotClasses:
+              {{- range $index, $pool := $spec.storagePools }}
+              {{- if default false $pool.snapshotClass.enabled }}
+                - {{ $id }}-{{ $pool.name }}
+              {{- else }}
+                - "WARN: Snapshot not enabled for {{ $id }}-{{ $pool.name }}"
+              {{- end }}
               {{- end }}
 
     - step: automatically-detect-readiness

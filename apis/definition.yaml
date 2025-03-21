@@ -976,6 +976,27 @@ spec:
                             enum:
                               - Immediate
                               - WaitForFirstConsumer
+                      snapshotClass:
+                        description: Configuration details for Volume Snapshot Class.
+                        type: object
+                        properties:
+                          enabled:
+                            type: boolean
+                            description: Whether to create VolumeSnapshotClass for current StorageClass.
+                            default: false
+                          deletionPolicy:
+                            description: |-
+                              deletionPolicy determines whether a VolumeSnapshotContent created through
+                              the VolumeSnapshotClass should be deleted when its bound VolumeSnapshot is deleted.
+                              Supported values are "Retain" and "Delete".
+                              "Retain" means that the VolumeSnapshotContent and its physical snapshot on underlying storage system are kept.
+                              "Delete" means that the VolumeSnapshotContent and its physical snapshot on underlying storage system are deleted.
+                              Required.
+                            enum:
+                              - Delete
+                              - Retain
+                            type: string
+                            default: Delete
                       spec:
                         description: Configuration details for chosen storage pool type.
                         type: object
@@ -1078,16 +1099,21 @@ spec:
               properties:
                 linstorClusterId:
                   type: string
-                  description: The ID of the Linstor cluster.
+                  description: The ID of the Linstor Cluster.
                 linstorStoragePools:
                   type: array
-                  description: The storage pools of the Linstor cluster.
+                  description: The Storage Pools of the Linstor Cluster.
                   items:
                     type: object
                     x-kubernetes-preserve-unknown-fields: true
                 storageClasses:
                   type: array
-                  description: The storage classes of the Linstor cluster.
+                  description: The Storage Classes of the Linstor Cluster.
+                  items:
+                    type: string
+                snapshotClasses:
+                  type: array
+                  description: The Volume Snapshot Classes of the Linstor Cluster.
                   items:
                     type: string
                 conditions:
