@@ -6,6 +6,3 @@ spec:
   charts:
     piraeus:
       version: 2.8.0
-    snapshot-controller:
-      namespace: snapshot-controller
-      repository: https://piraeus.io/helm-charts/

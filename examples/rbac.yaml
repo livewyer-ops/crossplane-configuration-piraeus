@@ -39,9 +39,9 @@ rules:
   - apiGroups:
       - piraeus.io
     resources:
-      - linstorcluster
-      - linstornodeconnection
-      - linstorsatelliteconfiguration
+      - linstorclusters
+      - linstornodeconnections
+      - linstorsatelliteconfigurations
     verbs:
       - "*"
 
