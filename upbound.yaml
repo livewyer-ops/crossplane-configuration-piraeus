@@ -4,15 +4,16 @@ metadata:
   name: configuration-piraeus
 spec:
   dependsOn:
-  - provider: xpkg.upbound.io/upbound/provider-helm
-    version: '>=v0.0.0'
-  - function: xpkg.upbound.io/upbound/function-patch-and-transform
-    version: '>=v0.0.0'
-  - function: xpkg.upbound.io/upbound/function-go-templating
-    version: '>=v0.0.0'
-  - function: xpkg.upbound.io/upbound/function-auto-ready
-    version: '>=v0.0.0'
-  description: Crossplane Configuration to deploy and manage Piraeus/Linbit datastore
+    - provider: xpkg.upbound.io/upbound/provider-helm
+      version: ">=v0.0.0"
+    - function: xpkg.upbound.io/upbound/function-patch-and-transform
+      version: ">=v0.0.0"
+    - function: xpkg.upbound.io/upbound/function-go-templating
+      version: ">=v0.0.0"
+    - function: xpkg.upbound.io/upbound/function-auto-ready
+      version: ">=v0.0.0"
+  description:
+    Crossplane Configuration to deploy and manage Piraeus/Linbit datastore
     on Kubernetes.
   license: MIT License
   maintainer: Livewyer <bowen@livewyer.com>
@@ -56,6 +57,7 @@ spec:
         ```
 
     3. _Optional_: Install `Snapshot Controller` if you wish to take snapshots of Piraeus volumes. You can use your own custom installation method or use the example provided in [examples/install.yaml](examples/install.yaml)
+
       _NOTE_: From Kubernetes v1.20 volume snapshot feature is included in the Kubernetes release.
 
     4. **Setup RBAC**: Add additional `ClusterRole` and `ClusterRoleBinding` required to manage Piraeus `piraeus.io` resources.
@@ -79,5 +81,6 @@ spec:
     ## License
 
     This project is licensed under the MIT License.
+
   repository: xpkg.upbound.io/nusnewob/configuration-piraeus
   source: github.com/livewyer-ops/crossplane-configuration-piraeus
