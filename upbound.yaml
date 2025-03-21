@@ -3,12 +3,20 @@ kind: Project
 metadata:
   name: configuration-piraeus
 spec:
-  description: Crossplane Configuration to deploy and manage Piraeus/Linbit datastore on Kubernetes.
+  dependsOn:
+  - provider: xpkg.upbound.io/upbound/provider-helm
+    version: '>=v0.0.0'
+  - function: xpkg.upbound.io/upbound/function-patch-and-transform
+    version: '>=v0.0.0'
+  - function: xpkg.upbound.io/upbound/function-go-templating
+    version: '>=v0.0.0'
+  - function: xpkg.upbound.io/upbound/function-auto-ready
+    version: '>=v0.0.0'
+  description: Crossplane Configuration to deploy and manage Piraeus/Linbit datastore
+    on Kubernetes.
   license: MIT License
   maintainer: Livewyer <bowen@livewyer.com>
-  repository: xpkg.upbound.io/nusnewob/configuration-piraeus
-  source: github.com/livewyer-ops/crossplane-configuration-piraeus
-  readme: |
+  readme: |-
     # Crossplane Configuration for Piraeus/Linbit
 
     This repository contains a Crossplane Composite Resource Definitions (XRDs) for managing **Piraeus/Linbit Datastore** on Kubernetes.
@@ -71,3 +79,5 @@ spec:
     ## License
 
     This project is licensed under the MIT License.
+  repository: xpkg.upbound.io/nusnewob/configuration-piraeus
+  source: github.com/livewyer-ops/crossplane-configuration-piraeus
