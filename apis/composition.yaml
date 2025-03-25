@@ -24,7 +24,6 @@ spec:
             {{- $charts := set $charts "piraeus" (dict "namespace" "piraeus-datastore" "repository" "https://livewyer-ops.github.io/charts/" "values" (dict "installCRDs" true)) -}}
             {{- /* -}}
             {{- $charts := set $charts "linstor-affinity-controller" (dict "namespace" "piraeus-datastore" "repository" "https://piraeus.io/helm-charts/") -}}
-            {{- $charts := set $charts "linstor-scheduler" (dict "namespace" "piraeus-datastore" "repository" "https://piraeus.io/helm-charts/") -}}
             {{- */ -}}
 
             {{- range $name, $chart := (deepCopy $spec.charts | merge $charts) }}

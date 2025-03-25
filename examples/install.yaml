@@ -6,3 +6,6 @@ spec:
   charts:
     piraeus:
       version: 2.8.0
+    linstor-affinity-controller:
+      namespace: piraeus-datastore
+      repository: https://piraeus.io/helm-charts/
