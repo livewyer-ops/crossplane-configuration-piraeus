@@ -247,6 +247,6 @@ spec:
               {{- end }}
               {{- end }}
 
-    - step: automatically-detect-readiness
-      functionRef:
-        name: upbound-function-auto-ready
+    # - step: automatically-detect-readiness
+    #   functionRef:
+    #     name: upbound-function-auto-ready
