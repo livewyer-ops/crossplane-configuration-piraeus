@@ -247,6 +247,7 @@ spec:
               {{- end }}
               {{- end }}
 
+    # TODO: temporarily disabled until we have a way to detect readiness. Ref: https://github.com/crossplane-contrib/function-auto-ready/issues/76
     # - step: automatically-detect-readiness
     #   functionRef:
     #     name: upbound-function-auto-ready

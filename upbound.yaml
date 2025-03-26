@@ -78,6 +78,10 @@ spec:
     - The [`examples/`](examples/) folder contains sample configuration files for setting up Piraeus resources.
     - Ensure [`rbac.yaml`](examples/rbac.yaml) is configured for managing Kubernetes storage classes and Piraeus resources.
 
+    ## Caveats
+
+    - `cluster.piraeus.livewyer.io` resource currently [cannot detect readiness of its sub-resources](https://github.com/crossplane-contrib/function-auto-ready/issues/76), due to the sub-resources (`StorageClasses`, `VolumeSnapshotClasses` and `LinstorClusters`/`LinstorNodeConnections`/`LinstorSatelliteConfigurations`) do not have status condition `type: Ready`, `status: True` fields.
+
     ## License
 
     This project is licensed under the MIT License.
