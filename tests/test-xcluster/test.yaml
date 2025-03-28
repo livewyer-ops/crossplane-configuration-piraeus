@@ -1,0 +1,6 @@
+apiVersion: piraeus.livewyer.io/v1alpha1
+kind: XCluster
+metadata:
+  name: test
+spec:
+  storagePools: []

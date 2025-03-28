@@ -1,0 +1,5 @@
+apiVersion: piraeus.livewyer.io/v1alpha1
+kind: XInstallation
+metadata:
+  name: test
+spec: {}

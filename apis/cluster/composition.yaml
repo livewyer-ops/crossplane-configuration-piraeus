@@ -1,107 +1,6 @@
 apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
-  name: installation.piraeus.livewyer.io
-spec:
-  compositeTypeRef:
-    apiVersion: piraeus.livewyer.io/v1alpha1
-    kind: XInstallation
-  mode: Pipeline
-  pipeline:
-    - step: go-templating
-      functionRef:
-        name: upbound-function-go-templating
-      input:
-        apiVersion: gotemplating.fn.crossplane.io/v1beta1
-        kind: GoTemplate
-        source: Inline
-        inline:
-          template: |
-            {{- $id := .observed.composite.resource.metadata.name -}}
-            {{- $spec := .observed.composite.resource.spec -}}
-
-            {{- $charts := dict -}}
-            {{- $charts := set $charts "piraeus" (dict "namespace" "piraeus-datastore" "repository" "https://livewyer-ops.github.io/charts/" "values" (dict "installCRDs" true)) -}}
-            {{- /* -}}
-            {{- $charts := set $charts "linstor-affinity-controller" (dict "namespace" "piraeus-datastore" "repository" "https://piraeus.io/helm-charts/") -}}
-            {{- */ -}}
-
-            {{- range $name, $chart := (deepCopy $spec.charts | merge $charts) }}
-
-            apiVersion: helm.crossplane.io/v1beta1
-            kind: Release
-            metadata:
-              name: {{ $name }}
-              annotations:
-                {{ setResourceNameAnnotation (printf "release.helm.crossplane.io/%s" $name) }}
-              labels:
-                piraeus.livewyer.io/installation: {{ $id }}
-            spec:
-              forProvider:
-                chart:
-                  name: {{ $name }}
-                  {{- if $chart.repository }}
-                  repository: {{ $chart.repository }}
-                  {{- end }}
-                  {{- if $chart.version }}
-                  version: {{ $chart.version }}
-                  {{- end }}
-                  {{- if $chart.url }}
-                  url: {{ $chart.url }}
-                  {{- end }}
-                  {{- if $chart.pullSecretRef }}
-                  pullSecretRef:
-                    name: {{ $chart.pullSecretRef.name }}
-                    namespace: {{ $chart.pullSecretRef.namespace }}
-                  {{- end }}
-                namespace: {{ $chart.namespace }}
-                {{- if $chart.skipCRDs}}
-                skipCRDs: {{ $chart.skipCRDs }}
-                {{- end }}
-                {{- if $chart.skipCreateNamespace }}
-                skipCreateNamespace: {{ $chart.skipCreateNamespace }}
-                {{- end }}
-                {{- if $chart.wait }}
-                wait: {{ $chart.wait }}
-                {{- end }}
-                {{- if $chart.waitTimeout }}
-                waitTimeout: {{ $chart.waitTimeout }}
-                {{- end }}
-                {{- if $chart.rollbackLimit }}
-                rollbackLimit: {{ $chart.rollbackLimit }}
-                {{- end }}
-                {{- if $chart.values }}
-                values:
-                  {{ toJson $chart.values }}
-                {{- end }}
-                {{- if $chart.patchesFrom }}
-                patchesFrom:
-                  {{ toJson $chart.patchesFrom }}
-                {{- end }}
-                {{- if $chart.set}}
-                set:
-                  {{ toJson $chart.set }}
-                {{- end }}
-                {{- if $chart.valuesFrom }}
-                valuesFrom:
-                  {{ toJson $chart.valuesFrom }}
-                {{- end }}
-                {{- if $spec.providerConfig }}
-                providerConfigRef:
-                  name: {{ $spec.providerConfig }}
-                {{- end }}
-
-            ---
-            {{- end }}
-
-    - step: automatically-detect-readiness
-      functionRef:
-        name: upbound-function-auto-ready
-
----
-apiVersion: apiextensions.crossplane.io/v1
-kind: Composition
-metadata:
   name: cluster.piraeus.livewyer.io
 spec:
   compositeTypeRef:
@@ -133,7 +32,7 @@ spec:
             {{- if $spec.cluster }}
             {{ toYaml $spec.cluster | indent 2 }}
             {{- else }}
-            {}
+            {{ printf "{}" | indent 2}}
             {{- end }}
 
             ---
