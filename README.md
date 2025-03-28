@@ -11,7 +11,7 @@ This Crossplane configuration defines Compositions and Composite Resource Defini
 You can install the configuration package directly from the Upbound registry:
 
 ```sh
-crossplane xpkg install configuration xpkg.upbound.io/nusnewob/configuration-piraeus:v0.0.1 configuration-piraeus
+crossplane xpkg install configuration xpkg.upbound.io/livewyer-ops/configuration-piraeus:v0.0.2 configuration-piraeus
 ```
 
 **Or** apply Kubernetes manifest:
@@ -22,7 +22,7 @@ kind: Configuration
 metadata:
   name: configuration-piraeus
 spec:
-  package: xpkg.upbound.io/nusnewob/configuration-piraeus:v0.0.1
+  package: xpkg.upbound.io/livewyer-ops/configuration-piraeus:v0.0.2
 ```
 
 ## Usage

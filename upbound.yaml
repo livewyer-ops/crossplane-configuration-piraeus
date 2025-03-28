@@ -31,7 +31,7 @@ spec:
     You can install the configuration package directly from the Upbound registry:
 
     ```sh
-    crossplane xpkg install configuration xpkg.upbound.io/nusnewob/configuration-piraeus:v0.0.1 configuration-piraeus
+    crossplane xpkg install configuration xpkg.upbound.io/livewyer-ops/configuration-piraeus:v0.0.2 configuration-piraeus
     ```
 
     **Or** apply Kubernetes manifest:
@@ -42,7 +42,7 @@ spec:
     metadata:
       name: configuration-piraeus
     spec:
-      package: xpkg.upbound.io/nusnewob/configuration-piraeus:v0.0.1
+      package: xpkg.upbound.io/livewyer-ops/configuration-piraeus:v0.0.2
     ```
 
     ## Usage
@@ -86,5 +86,5 @@ spec:
 
     This project is licensed under the MIT License.
 
-  repository: xpkg.upbound.io/nusnewob/configuration-piraeus
+  repository: xpkg.upbound.io/livewyer-ops/configuration-piraeus
   source: github.com/livewyer-ops/crossplane-configuration-piraeus
